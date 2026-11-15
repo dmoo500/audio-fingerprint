@@ -106,16 +106,16 @@ def fingerprint(samples: NDArray[np.float32], start_sample: int = 0) -> list[Fin
     frequencies = np.concatenate([frequency for frequency, _ in positions])
     frames = np.concatenate([frame for _, frame in positions])
     order = np.lexsort((frequencies, frames))
-    frequencies, frames = frequencies[order], frames[order]
+    frequencies, frames = frequencies[order].tolist(), frames[order].tolist()
     result: set[Fingerprint] = set()
     base_frame = start_sample // HOP_SIZE
     for index, (frequency, frame) in enumerate(zip(frequencies, frames, strict=True)):
         for other in range(index + 1, min(index + 5, len(frames))):
-            delta = int(frames[other] - frame)
+            delta = frames[other] - frame
             if 0 <= delta <= 200:
-                pair = f"{int(frequency)}|{int(frequencies[other])}|{delta}"
+                pair = f"{frequency}|{frequencies[other]}|{delta}"
                 digest = hashlib.sha1(pair.encode("ascii"), usedforsecurity=False).hexdigest()[:20]
-                result.add((digest, int(frame) + base_frame))
+                result.add((digest, frame + base_frame))
                 if len(result) > MAX_HASHES:
                     raise ValueError("Fingerprint count exceeds the per-window limit")
     return sorted(result, key=lambda item: (item[1], item[0]))

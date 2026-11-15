@@ -63,6 +63,60 @@ python -m pip install -e .
 python -m pytest
 ```
 
+### Lossless optimization benchmarks
+
+The extraction loop converts peak coordinates to Python integers once before pairing,
+avoiding repeated NumPy scalar conversion without changing hashes, offsets, FFT precision
+or bounded batch sizes. Exact compatibility is checked against the original algorithm.
+An alternating local comparison on 30-second synthetic fixtures measured about 2-4%
+less extraction time for noise and silence-gap inputs, with no meaningful change for a tone.
+These are machine-specific measurements, not a performance guarantee.
+
+Compare canonical JSON, ten-byte hashes with fixed-width offsets, and ten-byte hashes with
+delta-varint offsets, optionally compressed with zlib:
+
+```sh
+PYTHONPATH=src python scripts/benchmark_compression.py --duration 60 --iterations 10
+PYTHONPATH=src python scripts/benchmark_compression.py --kind tone --duration 60
+```
+
+The benchmark verifies exact hash/offset round trips and measures serialization,
+compression, decompression and parsing. Delta encoding includes sorting by offset;
+decoding restores the canonical hash/offset order. It reports raw payload and base64
+sizes separately. Metadata, base64 processing and network costs are not measured.
+The deterministic noise/tone fixtures are not a representative music collection.
+
+### Compact documents (0.3.0)
+
+`music_assistant_fingerprint.codec.encode_document` converts canonical, unique,
+hash/offset-sorted pairs into a compact document. `decode_document` accepts compact
+documents and legacy JSON and restores the original canonical pairs.
+Other fields, acoustic hashes and offsets are unchanged; this does not require reanalysis.
+
+Compact documents set `fingerprints_encoding` to `sha1-80-offset-delta-v1` and store
+`fingerprints` as base64. Records are ordered by offset, then hash: ten binary hash bytes
+followed by the minimal unsigned base-128 varint delta from the previous offset (initially
+zero). The decoder bounds encoded size, record count and offsets, rejects malformed or
+duplicate records and restores hash-first ordering. No zlib decompression is used.
+Additional compression saved little in the experiments relative to its CPU cost.
+On 60-second synthetic noise and tone fixtures, the production landmark JSON section
+was about 49-50% smaller including base64 and the encoding field. For 23,986 noise
+landmarks, a local median measured about 42 ms encoding and 21 ms decoding; compact
+storage trades this additional work for reduced storage and upload size.
+Actual music and machines will differ.
+
+Submission identity is still SHA-256 of **decoded canonical JSON**, without the encoding
+field, using sorted keys, compact separators and Python's default ASCII escaping.
+Deploy a codec-aware receiver and gateway before enabling compact producers; discover
+support through the receiver's authenticated capabilities endpoint. Existing legacy JSON
+uploads remain supported. Migrations must retain noncanonical or invalid legacy records
+instead of silently changing their identity.
+
+The fixed-width and zlib variants remain benchmark experiments, not supported encodings.
+Acoustic v1/v2 format IDs do not change for lossless compression.
+Cryptographic hash bytes themselves are mostly incompressible; binary packing removes
+hexadecimal overhead, while delta encoding primarily reduces the offsets.
+
 This package is not published on PyPI. Integrations use an exact Git commit
 from this repository, or install it locally. Do not claim compatibility with
 an existing Dejavu database without testing that database and its parameters.
