@@ -5,8 +5,8 @@ import json
 
 import pytest
 
-import music_assistant_fingerprint.codec as codec
-from music_assistant_fingerprint.codec import (
+import audio_fingerprint.codec as codec
+from audio_fingerprint.codec import (
     ENCODING_ID,
     MAX_OFFSET,
     decode_document,

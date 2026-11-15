@@ -1,6 +1,12 @@
 # Audio Fingerprint Library
 
-An experimental shared landmark-fingerprint library for Music Assistant analysis providers and an independently hosted recognition service. It has no database drivers, microphone hardware dependency, audio-file downloads, or file-writing code. This is an independent prototype, not an official Music Assistant or OHF project. It is MIT licensed; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+An experimental landmark-fingerprint library for audio analysis and independently hosted recognition services. It has no database drivers, microphone hardware dependency, audio-file downloads, or file-writing code. This is an independent project, not an official Music Assistant or OHF project. It is MIT licensed; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+## Upgrading to 0.4.0
+
+The distribution is now named `audio-fingerprint` and the Python package is `audio_fingerprint`, replacing `music-assistant-fingerprint` and `music_assistant_fingerprint`. Update dependency declarations and imports, including codec imports such as `from audio_fingerprint.codec import encode_document`. The old import path is no longer provided. Installations using a Git dependency should update both the distribution name and pinned revision.
+
+This is a packaging-only change: the persisted `ma-dejavu-landmarks-v1` and `ma-dejavu-landmarks-v2` format IDs, `sha1-80-offset-delta-v1` codec ID, hashes, offsets and document identities are unchanged. Existing fingerprints require neither reanalysis nor a data migration.
 
 ## Format
 
@@ -54,7 +60,7 @@ The benchmark verifies exact hash/offset round trips and measures serialization,
 
 ### Compact documents (0.3.0)
 
-`music_assistant_fingerprint.codec.encode_document` converts canonical, unique, hash/offset-sorted pairs into a compact document. `decode_document` accepts compact documents and legacy JSON and restores the original canonical pairs. Other fields, acoustic hashes and offsets are unchanged; this does not require reanalysis.
+`audio_fingerprint.codec.encode_document` converts canonical, unique, hash/offset-sorted pairs into a compact document. `decode_document` accepts compact documents and legacy JSON and restores the original canonical pairs. Other fields, acoustic hashes and offsets are unchanged; this does not require reanalysis.
 
 Compact documents set `fingerprints_encoding` to `sha1-80-offset-delta-v1` and store `fingerprints` as base64. Records are ordered by offset, then hash: ten binary hash bytes followed by the minimal unsigned base-128 varint delta from the previous offset (initially zero). The decoder bounds encoded size, record count and offsets, rejects malformed or duplicate records and restores hash-first ordering. No zlib decompression is used. Additional compression saved little in the experiments relative to its CPU cost. On 60-second synthetic noise and tone fixtures, the production landmark JSON section was about 49-50% smaller including base64 and the encoding field. For 23,986 noise landmarks, a local median measured about 42 ms encoding and 21 ms decoding; compact storage trades this additional work for reduced storage and upload size. Actual music and machines will differ.
 

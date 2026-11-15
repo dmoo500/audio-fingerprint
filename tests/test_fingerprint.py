@@ -5,7 +5,7 @@ from collections import Counter
 import numpy as np
 import pytest
 
-from music_assistant_fingerprint import (
+from audio_fingerprint import (
     FFT_SIZE,
     HOP_SIZE,
     MAX_DURATION,

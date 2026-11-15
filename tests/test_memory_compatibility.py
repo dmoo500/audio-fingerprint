@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from scipy import ndimage, signal
 
-import music_assistant_fingerprint
-from music_assistant_fingerprint import (
+import audio_fingerprint
+from audio_fingerprint import (
     FFT_SIZE,
     HOP_SIZE,
     SAMPLE_RATE,
@@ -97,7 +97,7 @@ def test_full_track_matches_original(monkeypatch: pytest.MonkeyPatch) -> None:
         return hashes
 
     actual = run()
-    monkeypatch.setattr(music_assistant_fingerprint, "fingerprint", original_fingerprint)
+    monkeypatch.setattr(audio_fingerprint, "fingerprint", original_fingerprint)
     assert actual == run()
 
 

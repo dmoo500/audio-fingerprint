@@ -6,7 +6,7 @@ import base64
 import binascii
 from typing import Any
 
-from music_assistant_fingerprint import HOP_SIZE, MAX_DURATION, MAX_TRACK_HASHES, SAMPLE_RATE
+from audio_fingerprint import HOP_SIZE, MAX_DURATION, MAX_TRACK_HASHES, SAMPLE_RATE
 
 ENCODING_ID = "sha1-80-offset-delta-v1"
 MAX_OFFSET = MAX_DURATION * SAMPLE_RATE // HOP_SIZE

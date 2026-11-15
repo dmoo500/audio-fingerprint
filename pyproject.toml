@@ -3,9 +3,9 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "music-assistant-fingerprint"
-version = "0.3.0"
-description = "Versioned landmark audio fingerprints for Music Assistant."
+name = "audio-fingerprint"
+version = "0.4.0"
+description = "Bounded, versioned landmark audio fingerprints."
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.12"
@@ -15,7 +15,7 @@ dependencies = ["numpy>=2.3,<3", "scipy>=1.17,<2", "soxr>=1,<2"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-music_assistant_fingerprint = ["py.typed"]
+audio_fingerprint = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

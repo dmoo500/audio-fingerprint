@@ -13,7 +13,7 @@ from collections.abc import Callable
 
 import numpy as np
 
-from music_assistant_fingerprint import SAMPLE_RATE, Fingerprint, WindowSampler
+from audio_fingerprint import SAMPLE_RATE, Fingerprint, WindowSampler
 
 
 def measure[T](call: Callable[[], T], iterations: int) -> tuple[T, float]:
