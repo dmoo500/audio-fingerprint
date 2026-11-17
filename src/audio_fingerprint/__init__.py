@@ -121,6 +121,15 @@ def fingerprint(samples: NDArray[np.float32], start_sample: int = 0) -> list[Fin
     return sorted(result, key=lambda item: (item[1], item[0]))
 
 
+_PCM_FORMATS = {
+    "pcm_s16le": ("<i2", 2, 32768),
+    "pcm_s32le": ("<i4", 4, 2147483648),
+    "pcm_f32le": ("<f4", 4, 1),
+    "pcm_f64le": ("<f8", 8, 1),
+    "pcm_s24le": ("u1", 3, 8388608),
+}
+
+
 def decode_pcm(data: bytes, encoding: str, channels: int) -> NDArray[np.float32]:
     """
     Convert little-endian PCM to normalized mono audio.
@@ -129,16 +138,9 @@ def decode_pcm(data: bytes, encoding: str, channels: int) -> NDArray[np.float32]
     :param encoding: pcm_s16le, pcm_s24le, pcm_s32le, pcm_f32le or pcm_f64le.
     :param channels: Number of channels, from 1 to 8.
     """
-    formats = {
-        "pcm_s16le": ("<i2", 2, 32768),
-        "pcm_s32le": ("<i4", 4, 2147483648),
-        "pcm_f32le": ("<f4", 4, 1),
-        "pcm_f64le": ("<f8", 8, 1),
-        "pcm_s24le": ("u1", 3, 8388608),
-    }
-    if encoding not in formats or not 1 <= channels <= 8:
+    if encoding not in _PCM_FORMATS or not 1 <= channels <= 8:
         raise ValueError("Unsupported PCM encoding or channel count")
-    dtype, width, scale = formats[encoding]
+    dtype, width, scale = _PCM_FORMATS[encoding]
     if len(data) % (width * channels):
         raise ValueError("PCM data does not contain complete frames")
     if encoding == "pcm_s24le":
@@ -194,9 +196,9 @@ class WindowSampler:
         """
         if self._finished:
             raise ValueError("Sampler has already been finalized")
-        audio = decode_pcm(data, self.encoding, self.channels)
-        if len(audio) > 2 * self.sample_rate:
+        if len(data) > 2 * self.sample_rate * self.channels * _PCM_FORMATS[self.encoding][1]:
             raise ValueError("PCM chunk exceeds the sample-count limit")
+        audio = decode_pcm(data, self.encoding, self.channels)
         if self._resampler is not None:
             audio = self._resampler.resample_chunk(audio, last=last)
         chunk_end = self.position + len(audio)

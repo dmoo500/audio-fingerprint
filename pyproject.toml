@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "audio-fingerprint"
-version = "0.4.0"
+version = "0.4.1"
 description = "Bounded, versioned landmark audio fingerprints."
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]

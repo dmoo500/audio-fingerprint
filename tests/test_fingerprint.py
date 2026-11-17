@@ -19,6 +19,27 @@ from audio_fingerprint import (
 )
 
 
+@pytest.mark.parametrize(
+    ("encoding", "width"),
+    [("pcm_s16le", 2), ("pcm_s24le", 3), ("pcm_s32le", 4), ("pcm_f32le", 4), ("pcm_f64le", 8)],
+)
+@pytest.mark.parametrize("channels", [1, 2, 8])
+def test_chunk_limit_checked_before_decoding(
+    encoding: str, width: int, channels: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Reject oversized chunks before allocating decoded PCM in every supported format."""
+    sampler = WindowSampler(5, 8000, channels, encoding)
+    limit = 2 * 8000 * channels * width
+    assert sampler.feed(bytes(limit)) == []
+
+    def unexpected_decode(*args: object) -> None:
+        raise AssertionError("Oversized chunk reached the decoder")
+
+    monkeypatch.setattr("audio_fingerprint.decode_pcm", unexpected_decode)
+    with pytest.raises(ValueError, match="sample-count limit"):
+        sampler.feed(bytes(limit + channels * width))
+
+
 def test_windows_cover_the_whole_track_with_overlap() -> None:
     windows = plan_windows(180)
     assert len(windows) > 3
